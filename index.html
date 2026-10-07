@@ -175,7 +175,42 @@
         .player .screen.vertical { aspect-ratio: 9 / 16; width: min(100%, 360px); margin: 0 auto; }
         .player iframe, .player video { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
         .player .foot { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; padding-top: 10px; }
-        .player .foot a { margin-left: auto; color: #ffb3e6; font-size: 13px; }
+        .player .foot a { color: #ffb3e6; font-size: 13px; }
+        .player .ptags { display: flex; flex-wrap: wrap; gap: 6px; }
+
+        /* Volume */
+        .volume { display: flex; align-items: center; gap: 8px; margin-left: auto; font-size: 13px; color: var(--text-dim); }
+        .volume .mute {
+            width: 30px; height: 24px; padding: 0; cursor: pointer; display: grid; place-items: center;
+            border: 1px solid rgba(0, 0, 0, 0.75);
+            background: linear-gradient(180deg, rgba(255,255,255,0.30), rgba(255,255,255,0.10) 50%, rgba(255,255,255,0.0) 51%, rgba(255,255,255,0.12));
+            box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.3);
+        }
+        .volume .mute:hover { box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.5), 0 0 8px rgba(255, 122, 209, 0.6); }
+        .volume .mute svg { width: 16px; height: 16px; }
+        .volume .mute .cross, .volume.muted .mute .waves { display: none; }
+        .volume.muted .mute .cross { display: block; }
+        .volume output { width: 34px; text-align: right; font-variant-numeric: tabular-nums; }
+        .volume :disabled { opacity: 0.4; cursor: default; }
+        input[type=range] {
+            -webkit-appearance: none; appearance: none;
+            width: 140px; height: 8px; margin: 0; cursor: pointer;
+            border: 1px solid rgba(0, 0, 0, 0.85);
+            background: linear-gradient(90deg, var(--pink) 0 var(--fill, 50%), rgba(0, 0, 0, 0.5) var(--fill, 50%));
+            box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.18);
+        }
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none; appearance: none; width: 12px; height: 18px;
+            border: 1px solid rgba(0, 0, 0, 0.8);
+            background: linear-gradient(180deg, #fff, #dfe8ec 50%, #b9c7ce 51%, #e6eef1);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
+        }
+        input[type=range]::-moz-range-thumb {
+            width: 12px; height: 18px;
+            border: 1px solid rgba(0, 0, 0, 0.8);
+            background: linear-gradient(180deg, #fff, #dfe8ec 50%, #b9c7ce 51%, #e6eef1);
+        }
+        .volume .note { font-size: 12px; }
 
         /* Bande noire sur toute la largeur, en bas de page */
         body { display: flex; flex-direction: column; }
@@ -252,7 +287,18 @@
         </div>
         <div class="content">
             <div class="screen" id="pscreen"></div>
-            <div class="foot"><span id="ptags" class="foot"></span><a id="plink" href="#" target="_blank" rel="noopener">Open original</a></div>
+            <div class="foot">
+                <span id="ptags" class="ptags"></span>
+                <div class="volume" id="volbox">
+                    <span class="note" id="volnote" hidden>Use TikTok's own volume</span>
+                    <button class="mute" id="mute" aria-label="Mute">
+                        <svg viewBox="0 0 16 16"><path d="M2 6h3l4-3v10l-4-3H2z" fill="#fff" stroke="#000" stroke-width="0.8"/><path class="waves" d="M11 5.5q1.6 2.5 0 5M12.8 4q2.8 4 0 8" fill="none" stroke="#fff" stroke-width="1.4"/><path class="cross" d="M11 6l4 4M15 6l-4 4" stroke="#ff8a8a" stroke-width="1.6"/></svg>
+                    </button>
+                    <input type="range" id="volume" min="0" max="100" step="1" aria-label="Volume">
+                    <output id="volout"></output>
+                </div>
+                <a id="plink" href="#" target="_blank" rel="noopener">Open original</a>
+            </div>
         </div>
     </div>
 </div>
@@ -493,6 +539,65 @@ function render() {
 }
 
 // --- Lecteur ---
+// --- Volume ---
+// Réglage global gardé d'une visite à l'autre ; une vidéo trop forte peut avoir "volume": 40 dans le JSON.
+const store = {
+    get(k) { try { return localStorage.getItem(k); } catch { return null; } },
+    set(k, v) { try { localStorage.setItem(k, v); } catch {} }
+};
+let volume = Math.min(100, Math.max(0, parseInt(store.get('fv-volume') ?? '60', 10) || 0));
+let muted = store.get('fv-muted') === '1';
+let playing = null;      // { video, yt, el } de la vidéo ouverte
+
+function effectiveVolume() {
+    if (muted || !playing) return 0;
+    const own = Number(playing.video.volume);
+    const factor = Number.isFinite(own) && playing.video.volume !== undefined ? Math.min(100, Math.max(0, own)) / 100 : 1;
+    return Math.round(volume * factor);
+}
+
+function applyVolume() {
+    $('volume').value = volume;
+    $('volume').style.setProperty('--fill', volume + '%');
+    $('volout').textContent = muted ? 'off' : volume + '%';
+    $('volbox').classList.toggle('muted', muted || volume === 0);
+    if (!playing) return;
+    const v = effectiveVolume();
+    if (playing.yt && playing.yt.setVolume) {
+        playing.yt.setVolume(v);
+        v === 0 ? playing.yt.mute() : playing.yt.unMute();
+    }
+    if (playing.el) { playing.el.volume = v / 100; playing.el.muted = v === 0; }
+}
+
+$('volume').addEventListener('input', e => {
+    volume = +e.target.value;
+    if (volume > 0) muted = false;
+    store.set('fv-volume', volume);
+    store.set('fv-muted', muted ? '1' : '0');
+    applyVolume();
+});
+$('mute').addEventListener('click', () => {
+    muted = !muted;
+    if (!muted && volume === 0) volume = 30;
+    store.set('fv-muted', muted ? '1' : '0');
+    store.set('fv-volume', volume);
+    applyVolume();
+});
+applyVolume();
+
+// L'API YouTube est chargée seulement à la première vidéo
+let ytReady;
+function loadYouTubeApi() {
+    if (!ytReady) ytReady = new Promise(resolve => {
+        window.onYouTubeIframeAPIReady = resolve;
+        const sc = document.createElement('script');
+        sc.src = 'https://www.youtube.com/iframe_api';
+        document.head.appendChild(sc);
+    });
+    return ytReady;
+}
+
 function openPlayer(v) {
     const s = v.src;
     if (s.kind === 'link') { window.open(v.url, '_blank', 'noopener'); return; }
@@ -501,19 +606,40 @@ function openPlayer(v) {
     screen.innerHTML = '';
     screen.classList.toggle('vertical', !!s.vertical);
 
+    if (playing && playing.yt && playing.yt.destroy) playing.yt.destroy();
+    const session = playing = { video: v };
+    $('volnote').hidden = s.kind !== 'tiktok';
+    $('volume').disabled = $('mute').disabled = s.kind === 'tiktok';
+
     if (s.kind === 'file') {
         const vid = document.createElement('video');
         vid.src = s.url; vid.controls = true; vid.autoplay = true;
+        session.el = vid;
         screen.appendChild(vid);
+    } else if (s.kind === 'youtube') {
+        const slot = document.createElement('div');
+        screen.appendChild(slot);
+        loadYouTubeApi().then(() => {
+            if (playing !== session) return;   // fermée entre-temps
+            session.yt = new YT.Player(slot, {
+                host: 'https://www.youtube-nocookie.com',
+                videoId: s.id,
+                playerVars: { autoplay: 1, rel: 0, playsinline: 1, start: s.start || 0 },
+                events: {
+                    // Le volume est posé avant que le son démarre
+                    onReady: e => { if (playing === session) { applyVolume(); e.target.playVideo(); } }
+                }
+            });
+        });
     } else {
+        // TikTok ne permet pas de régler le son depuis la page
         const f = document.createElement('iframe');
         f.allow = 'autoplay; encrypted-media; picture-in-picture; fullscreen';
         f.allowFullscreen = true;
-        f.src = s.kind === 'youtube'
-            ? `https://www.youtube-nocookie.com/embed/${s.id}?autoplay=1&rel=0${s.start ? '&start=' + s.start : ''}`
-            : `https://www.tiktok.com/embed/v2/${s.id}`;
+        f.src = `https://www.tiktok.com/embed/v2/${s.id}`;
         screen.appendChild(f);
     }
+    applyVolume();
 
     $('ptitle').textContent = v.title;
     $('plink').href = v.url;
@@ -525,6 +651,8 @@ function openPlayer(v) {
 }
 
 function closePlayer() {
+    if (playing && playing.yt && playing.yt.destroy) playing.yt.destroy();
+    playing = null;
     $('modal').classList.remove('open');
     $('pscreen').innerHTML = '';   // coupe le son
 }

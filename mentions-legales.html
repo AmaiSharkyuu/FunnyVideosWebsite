@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mentions légales - Funny Videos</title>
+    <style>
+        *, *::before, *::after { border-radius: 0 !important; box-sizing: border-box; }
+
+        :root { --text-dim: #c9d6dc; --pink: #ff7ad1; }
+
+        body {
+            margin: 0;
+            min-height: 100dvh;
+            display: flex; flex-direction: column;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #fff;
+            background: #2f6b1c url('grass.jpg') center / cover fixed;
+        }
+        .page { flex: 1; width: 100%; max-width: 900px; margin: 0 auto; padding: 34px 20px 50px; }
+
+        .window {
+            background:
+                linear-gradient(115deg, rgba(255,255,255,0.10) 0%, rgba(255,255,255,0) 22%, rgba(255,255,255,0) 58%, rgba(255,255,255,0.07) 66%, rgba(255,255,255,0) 74%),
+                rgba(4, 6, 7, 0.72);
+            backdrop-filter: blur(10px) saturate(1.1);
+            -webkit-backdrop-filter: blur(10px) saturate(1.1);
+            border: 1px solid rgba(0, 0, 0, 0.75);
+            box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.28), 0 8px 28px rgba(0, 0, 0, 0.55);
+        }
+        .titlebar {
+            display: flex; align-items: center; gap: 8px;
+            height: 30px; padding: 0 6px 0 10px;
+            font-size: 13px;
+            text-shadow: 0 0 8px rgba(255, 255, 255, 0.55), 0 1px 1px rgba(0, 0, 0, 0.8);
+            background: linear-gradient(180deg, rgba(255,255,255,0.16), rgba(255,255,255,0.04) 50%, rgba(0,0,0,0) 51%);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.5);
+        }
+        .titlebar .name { flex: 1; }
+        .caption { display: flex; align-self: flex-start; }
+        .caption a {
+            width: 46px; height: 19px; display: grid; place-items: center;
+            border: 1px solid rgba(0, 0, 0, 0.7); border-top: none;
+            background: linear-gradient(180deg, #e8a493 0%, #d86a4e 50%, #c7381a 51%, #d9552f 100%);
+            box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.25);
+            color: #fff; font: 700 11px/1 'Segoe UI', sans-serif; text-decoration: none;
+        }
+        .caption a:hover { background: linear-gradient(180deg, #ffbfae 0%, #f0806a 50%, #e8401f 51%, #ff6a3d 100%); }
+
+        .content { padding: 22px 26px 26px; line-height: 1.65; }
+        h1 { margin: 0 0 4px; font-size: 28px; font-weight: 600; text-shadow: 0 0 14px rgba(255, 255, 255, 0.35), 0 2px 3px rgba(0, 0, 0, 0.8); }
+        .lead { margin: 0 0 18px; color: var(--text-dim); font-size: 14px; }
+        h2 { margin: 26px 0 8px; font-size: 17px; font-weight: 600; color: #ffb3e6; }
+        p, li { font-size: 14.5px; color: #e6eef1; }
+        ul { padding-left: 20px; margin: 6px 0; }
+        a { color: #8fe0ff; }
+        .block {
+            background: rgba(0, 0, 0, 0.35);
+            border: 1px solid rgba(0, 0, 0, 0.8);
+            box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.14);
+            padding: 10px 14px;
+        }
+        .block p { margin: 3px 0; }
+        .block strong { color: #fff; }
+        .updated { margin-top: 26px; font-size: 12px; color: var(--text-dim); text-align: right; }
+
+        .btn {
+            display: inline-block; margin-top: 8px;
+            font-size: 15px; font-weight: 600; color: #fff; text-decoration: none;
+            padding: 8px 16px;
+            border: 1px solid rgba(0, 0, 0, 0.75);
+            background: linear-gradient(180deg, #ffc2ea 0%, #ff7ad1 48%, #c8338f 52%, #e957b5 100%);
+            box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.3);
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.7);
+        }
+        .btn:hover { filter: brightness(1.1); }
+
+        .strip {
+            display: flex; flex-wrap: wrap; justify-content: center; gap: 6px 22px;
+            padding: 12px 16px;
+            font-size: 13px; color: var(--text-dim);
+            background: linear-gradient(180deg, rgba(255,255,255,0.08), rgba(255,255,255,0) 50%), rgba(0, 0, 0, 0.78);
+            backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+            border-top: 1px solid rgba(255, 255, 255, 0.22);
+        }
+        .strip a { color: #fff; }
+        .strip a:hover { color: var(--pink); }
+
+        @media (max-width: 600px) {
+            .page { padding: 16px 10px 36px; }
+            .content { padding: 16px; }
+            h1 { font-size: 23px; }
+        }
+    </style>
+</head>
+<body>
+<div class="page">
+    <article class="window">
+        <div class="titlebar">
+            <span class="name">Mentions légales</span>
+            <span class="caption"><a href="index.html" aria-label="Fermer et revenir à l'accueil">&#10005;</a></span>
+        </div>
+        <div class="content">
+            <h1>Mentions légales</h1>
+            <p class="lead">Amai's Funny Videos</p>
+
+            <p>Conformément à l'article 6 III de la loi n° 2004-575 du 21 juin 2004 pour la confiance dans l'économie numérique (LCEN), voici les informations relatives à l'éditeur et à l'hébergeur de ce site.</p>
+
+            <h2>1. Éditeur du site</h2>
+            <div class="block">
+                <p><strong>Éditeur / Directeur de la publication :</strong> AmaiSharkyuu (pseudonyme)</p>
+                <p><strong>Statut :</strong> personne physique éditant un site à titre non professionnel et non lucratif</p>
+                <p><strong>Contact :</strong> <a href="mailto:Contact@amaicraft.fr">Contact@amaicraft.fr</a></p>
+            </div>
+            <p>En application de l'article 6 III 2 de la LCEN, l'éditeur non professionnel a choisi de rester anonyme auprès du public. Ses coordonnées complètes sont détenues par l'hébergeur et sont communicables sur réquisition de l'autorité judiciaire.</p>
+
+            <h2>2. Hébergeur</h2>
+            <div class="block">
+                <p><strong>GitHub Pages</strong>, service de GitHub, Inc.</p>
+                <p>88 Colin P. Kelly Jr. Street, San Francisco, CA 94107, États-Unis</p>
+                <p><a href="https://github.com" target="_blank" rel="noopener">github.com</a> / <a href="https://support.github.com" target="_blank" rel="noopener">support.github.com</a></p>
+            </div>
+
+            <h2>3. Vidéos présentées</h2>
+            <p>Ce site est une sélection personnelle de vidéos humoristiques. Les vidéos ne sont pas hébergées ici : elles sont intégrées depuis les plateformes où elles ont été publiées (YouTube, TikTok...) ou accessibles par un lien vers celles-ci.</p>
+            <p>Chaque vidéo reste la propriété de son créateur et de ses ayants droit. Leur présence sur ce site ne signifie pas que leurs auteurs approuvent ou soutiennent ce site. Toute demande de retrait d'une vidéo émanant d'un ayant droit sera traitée dans les meilleurs délais à l'adresse de contact ci-dessus.</p>
+
+            <h2>4. Propriété intellectuelle</h2>
+            <p>Hors éléments appartenant à des tiers, la mise en page, le design et le code source de ce site sont la propriété de l'éditeur. Toute reproduction ou réutilisation, totale ou partielle, sans autorisation préalable est interdite.</p>
+            <p><strong>Image de fond :</strong> <a href="https://commons.wikimedia.org/wiki/File:Common_Lawn_Grass_Macro_PLT-GR-3.jpg" target="_blank" rel="noopener">Common Lawn Grass Macro</a> par Shadowmeld Photography, sous licence <a href="https://creativecommons.org/licenses/by-sa/4.0/deed.fr" target="_blank" rel="noopener">CC BY-SA 4.0</a>. Image modifiée (saturation et contraste augmentés) ; la version modifiée est diffusée sous la même licence.</p>
+
+            <h2>5. Données personnelles et cookies</h2>
+            <p>Le site lui-même ne contient aucun formulaire, aucun compte utilisateur, aucun outil de mesure d'audience et ne dépose aucun cookie. Aucune donnée personnelle n'est collectée par l'éditeur.</p>
+            <p>Les miniatures des vidéos sont chargées depuis les serveurs de YouTube. Lorsque vous lancez une vidéo, le lecteur de la plateforme concernée est chargé :</p>
+            <ul>
+                <li><strong>YouTube</strong> est intégré en mode « confidentialité renforcée » (youtube-nocookie.com) : aucun cookie n'est déposé tant que vous ne lancez pas la lecture. Google peut ensuite enregistrer des données selon sa <a href="https://policies.google.com/privacy?hl=fr" target="_blank" rel="noopener">politique de confidentialité</a>.</li>
+                <li><strong>TikTok</strong> peut déposer des cookies dès l'ouverture de son lecteur, selon sa <a href="https://www.tiktok.com/legal/privacy-policy-eea?lang=fr" target="_blank" rel="noopener">politique de confidentialité</a>.</li>
+            </ul>
+            <p>Pour des raisons techniques et de sécurité, GitHub peut enregistrer des données de connexion (adresse IP, date, page consultée) lors de l'affichage des pages. Ce traitement relève de GitHub, Inc. (voir sa <a href="https://docs.github.com/fr/site-policy/privacy-policies/github-general-privacy-statement" target="_blank" rel="noopener">déclaration de confidentialité</a>).</p>
+            <p>Conformément au RGPD, vous pouvez exercer vos droits d'accès, de rectification et d'effacement à l'adresse de contact ci-dessus, ou introduire une réclamation auprès de la <a href="https://www.cnil.fr" target="_blank" rel="noopener">CNIL</a>.</p>
+
+            <h2>6. Liens externes</h2>
+            <p>Ce site renvoie vers des plateformes et des sites tiers. L'éditeur n'exerce aucun contrôle sur leur contenu et décline toute responsabilité à leur égard.</p>
+
+            <h2>7. Responsabilité</h2>
+            <p>Les contenus sont proposés à titre de divertissement, sans garantie de disponibilité : une vidéo peut être supprimée ou rendue privée par son auteur à tout moment. L'éditeur ne saurait être tenu responsable d'un dommage résultant de l'utilisation du site ou de son indisponibilité.</p>
+
+            <h2>8. Droit applicable</h2>
+            <p>Les présentes mentions légales sont soumises au droit français. Tout litige relatif au site relève de la compétence des juridictions françaises.</p>
+
+            <p class="updated">Dernière mise à jour : 7 octobre 2026</p>
+            <a class="btn" href="index.html">Retour aux vidéos</a>
+        </div>
+    </article>
+</div>
+
+<footer class="strip">
+    <span>Videos belong to their respective creators.</span>
+    <a href="index.html">Accueil</a>
+</footer>
+</body>
+</html>

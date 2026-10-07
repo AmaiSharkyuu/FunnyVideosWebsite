@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Funny Videos</title>
+    <style>
+        /* Aucun angle arrondi, nulle part */
+        *, *::before, *::after { border-radius: 0 !important; box-sizing: border-box; }
+
+        :root {
+            --text: #ffffff;
+            --text-dim: #c9d6dc;
+
+            /* Couleurs de tags utilisables dans videos.json ("color": "aqua") */
+            --aqua: #4fd8ff;   --aqua-deep: #0d7ea8;
+            --lime: #8ef564;   --lime-deep: #2f8f3c;
+            --pink: #ff7ad1;   --pink-deep: #b52a86;
+            --violet: #b18cff; --violet-deep: #6b34c9;
+            --ruby: #ff6b6b;   --ruby-deep: #a81d33;
+            --gold: #ffd166;   --gold-deep: #a8740d;
+            --steel: #a9bfcc;  --steel-deep: #3d5a6b;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100dvh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: var(--text);
+            background: #2f6b1c url('grass.jpg') center / cover fixed;
+        }
+
+        .page { max-width: 1180px; margin: 0 auto; padding: 34px 20px 50px; display: flex; flex-direction: column; gap: 22px; }
+
+        /* --- Fenêtre en verre noir, façon Windows 7 --- */
+        .window {
+            position: relative;
+            background:
+                /* reflets en biais du verre */
+                linear-gradient(115deg, rgba(255,255,255,0.10) 0%, rgba(255,255,255,0) 22%, rgba(255,255,255,0) 58%, rgba(255,255,255,0.07) 66%, rgba(255,255,255,0) 74%),
+                rgba(4, 6, 7, 0.66);
+            backdrop-filter: blur(10px) saturate(1.1);
+            -webkit-backdrop-filter: blur(10px) saturate(1.1);
+            border: 1px solid rgba(0, 0, 0, 0.75);
+            box-shadow:
+                inset 0 0 0 1px rgba(255, 255, 255, 0.28),
+                0 8px 28px rgba(0, 0, 0, 0.55);
+        }
+        .titlebar {
+            display: flex; align-items: center; gap: 8px;
+            height: 30px; padding: 0 6px 0 10px;
+            font-size: 13px;
+            text-shadow: 0 0 8px rgba(255, 255, 255, 0.55), 0 1px 1px rgba(0, 0, 0, 0.8);
+            background: linear-gradient(180deg, rgba(255,255,255,0.16), rgba(255,255,255,0.04) 50%, rgba(0,0,0,0) 51%);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.5);
+            user-select: none;
+        }
+        .titlebar .icon { width: 16px; height: 16px; flex: none; }
+        .titlebar .name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .caption { display: flex; align-self: flex-start; }
+        .caption span, .caption button {
+            width: 28px; height: 19px; display: grid; place-items: center;
+            border: 1px solid rgba(0, 0, 0, 0.7); border-top: none; margin-left: -1px;
+            background: linear-gradient(180deg, rgba(255,255,255,0.32), rgba(255,255,255,0.12) 50%, rgba(255,255,255,0.02) 51%, rgba(255,255,255,0.14));
+            box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.25);
+            color: #fff; font: 700 11px/1 'Segoe UI', sans-serif; padding: 0;
+        }
+        .caption .x {
+            width: 46px; cursor: pointer;
+            background: linear-gradient(180deg, #e8a493 0%, #d86a4e 50%, #c7381a 51%, #d9552f 100%);
+        }
+        .caption .x:hover { background: linear-gradient(180deg, #ffbfae 0%, #f0806a 50%, #e8401f 51%, #ff6a3d 100%); }
+        .content { padding: 18px; }
+
+        /* --- En-tête --- */
+        h1 { margin: 0; font-size: 32px; font-weight: 600; text-shadow: 0 0 14px rgba(255, 255, 255, 0.35), 0 2px 3px rgba(0, 0, 0, 0.8); }
+        .subtitle { margin: 4px 0 0; color: var(--text-dim); text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8); }
+
+        /* --- Barre d'outils --- */
+        .toolbar { display: flex; flex-direction: column; gap: 14px; }
+        .row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+
+        input[type=search], select {
+            font: inherit; font-size: 15px; color: #fff;
+            background: rgba(0, 0, 0, 0.45);
+            border: 1px solid rgba(0, 0, 0, 0.8);
+            box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.18);
+            padding: 8px 11px;
+            outline: none;
+        }
+        input[type=search] { flex: 1 1 260px; min-width: 0; }
+        input[type=search]::placeholder { color: #9aa8ae; }
+        input[type=search]:focus, select:focus { box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.6), 0 0 0 1px var(--pink), 0 0 10px rgba(255, 122, 209, 0.45); }
+        select option { background: #111; }
+
+        .btn {
+            font: inherit; font-size: 15px; font-weight: 600; cursor: pointer;
+            color: #fff;
+            padding: 8px 16px;
+            border: 1px solid rgba(0, 0, 0, 0.75);
+            background: linear-gradient(180deg, rgba(255,255,255,0.30), rgba(255,255,255,0.10) 50%, rgba(255,255,255,0.0) 51%, rgba(255,255,255,0.12));
+            box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.3);
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.7);
+        }
+        .btn:hover { background-color: rgba(120, 200, 255, 0.25); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.5), 0 0 10px rgba(120, 200, 255, 0.5); }
+        .btn.pink { background: linear-gradient(180deg, #ffc2ea 0%, #ff7ad1 48%, #c8338f 52%, #e957b5 100%); }
+        .btn.pink:hover { filter: brightness(1.1); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.5), 0 0 12px rgba(255, 122, 209, 0.7); }
+
+        /* Tags : la couleur vient des variables --c et --cd posées en JS */
+        .tag {
+            --c: var(--steel); --cd: var(--steel-deep);
+            font: inherit; font-size: 14px; font-weight: 600; cursor: pointer;
+            color: #fff;
+            padding: 5px 11px;
+            border: 1px solid rgba(0, 0, 0, 0.7);
+            background: linear-gradient(180deg, color-mix(in srgb, var(--c) 35%, transparent), color-mix(in srgb, var(--cd) 35%, transparent));
+            box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--c) 55%, transparent);
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.7);
+        }
+        .tag .count { opacity: 0.75; font-weight: 400; margin-left: 5px; }
+        .tag:hover { box-shadow: inset 0 0 0 1px var(--c), 0 0 8px color-mix(in srgb, var(--c) 50%, transparent); }
+        .tag.on {
+            background: linear-gradient(180deg, var(--c) 0%, color-mix(in srgb, var(--c) 70%, var(--cd)) 48%, var(--cd) 52%, color-mix(in srgb, var(--cd) 80%, var(--c)) 100%);
+            box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.55), 0 0 12px color-mix(in srgb, var(--c) 60%, transparent);
+        }
+        .tag.small { font-size: 12px; padding: 2px 7px; }
+        .hint { color: var(--text-dim); font-size: 13px; }
+        .clear { background: none; border: none; color: var(--pink); cursor: pointer; font: inherit; font-size: 13px; text-decoration: underline; padding: 0; }
+
+        /* --- Grille de vidéos --- */
+        .status { color: var(--text-dim); font-size: 13px; margin-left: auto; padding-right: 6px; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 14px; }
+        .card {
+            display: flex; flex-direction: column; cursor: pointer;
+            background: rgba(0, 0, 0, 0.35);
+            border: 1px solid rgba(0, 0, 0, 0.8);
+            box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.16);
+            transition: box-shadow 0.12s, background-color 0.12s;
+        }
+        .card:hover, .card:focus-visible {
+            outline: none;
+            background: rgba(255, 122, 209, 0.12);
+            box-shadow: inset 0 0 0 1px rgba(255, 170, 225, 0.75), 0 0 14px rgba(255, 122, 209, 0.45);
+        }
+        .thumb { position: relative; aspect-ratio: 16 / 9; background: #000 center / cover no-repeat; border-bottom: 1px solid rgba(0, 0, 0, 0.8); }
+        .thumb .play {
+            position: absolute; left: 50%; top: 50%; width: 54px; height: 38px; transform: translate(-50%, -50%);
+            background: linear-gradient(180deg, rgba(255,255,255,0.45), rgba(255,255,255,0.15) 50%, rgba(0,0,0,0.35) 51%, rgba(0,0,0,0.25));
+            border: 1px solid rgba(0, 0, 0, 0.7);
+            box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.5), 0 2px 10px rgba(0, 0, 0, 0.6);
+            opacity: 0.8; transition: opacity 0.12s, background-color 0.12s;
+        }
+        .thumb .play::after {
+            content: ""; position: absolute; left: 21px; top: 10px;
+            border-left: 15px solid #fff; border-top: 9px solid transparent; border-bottom: 9px solid transparent;
+            filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.7));
+        }
+        .card:hover .play { opacity: 1; background-color: rgba(255, 122, 209, 0.55); }
+        .thumb .noimg { position: absolute; inset: 0; display: grid; place-items: center; color: var(--text-dim); font-size: 13px; }
+        .card .body { padding: 10px 12px 12px; display: flex; flex-direction: column; gap: 9px; flex: 1; }
+        .card h3 { margin: 0; font-size: 15px; font-weight: 600; line-height: 1.3; text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8); }
+        .card .tags { display: flex; flex-wrap: wrap; gap: 5px; margin-top: auto; }
+        .card .meta { font-size: 12px; color: var(--text-dim); }
+
+        .empty, .error { padding: 26px; text-align: center; grid-column: 1 / -1; color: var(--text-dim); }
+        .error { color: #fff; }
+        .error pre { text-align: left; white-space: pre-wrap; color: #ffd0d0; background: rgba(0, 0, 0, 0.5); padding: 12px; overflow-x: auto; }
+
+        /* --- Lecteur --- */
+        .modal { position: fixed; inset: 0; z-index: 10; display: none; align-items: center; justify-content: center; padding: 20px; background: rgba(0, 0, 0, 0.45); }
+        .modal.open { display: flex; }
+        .player { width: min(1000px, 100%); max-height: 100%; display: flex; flex-direction: column; }
+        .player .content { padding: 10px; }
+        .player .screen { position: relative; aspect-ratio: 16 / 9; background: #000; max-height: calc(100dvh - 150px); border: 1px solid rgba(0, 0, 0, 0.9); box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.2); }
+        .player .screen.vertical { aspect-ratio: 9 / 16; width: min(100%, 360px); margin: 0 auto; }
+        .player iframe, .player video { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+        .player .foot { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; padding-top: 10px; }
+        .player .foot a { margin-left: auto; color: #ffb3e6; font-size: 13px; }
+
+        /* Bande noire sur toute la largeur, en bas de page */
+        body { display: flex; flex-direction: column; }
+        .page { flex: 1; width: 100%; }
+        .strip {
+            display: flex; flex-wrap: wrap; justify-content: center; gap: 6px 22px;
+            padding: 12px 16px;
+            font-size: 13px; color: var(--text-dim);
+            background: linear-gradient(180deg, rgba(255,255,255,0.08), rgba(255,255,255,0) 50%), rgba(0, 0, 0, 0.78);
+            backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+            border-top: 1px solid rgba(255, 255, 255, 0.22);
+        }
+        .strip a { color: #fff; }
+        .strip a:hover { color: var(--pink); }
+
+        @media (max-width: 600px) {
+            .page { padding: 16px 10px 36px; gap: 16px; }
+            h1 { font-size: 25px; }
+            .content { padding: 14px; }
+        }
+    </style>
+</head>
+<body>
+<div class="page">
+    <section class="window">
+        <div class="titlebar">
+            <svg class="icon" viewBox="0 0 16 16"><rect x="1" y="3" width="14" height="10" fill="#ff7ad1" stroke="#000" stroke-width="1"/><path d="M6 5.5v5l4.5-2.5z" fill="#fff"/></svg>
+            <span class="name">Funny Videos</span>
+            <span class="caption"><span>&#8211;</span><span>&#9633;</span><span class="x">&#10005;</span></span>
+        </div>
+        <div class="content">
+            <h1 id="title">Funny Videos</h1>
+            <p class="subtitle" id="subtitle"></p>
+        </div>
+    </section>
+
+    <section class="window">
+        <div class="titlebar"><span class="name">Search and tags</span></div>
+        <div class="content toolbar">
+            <div class="row">
+                <input type="search" id="search" placeholder="Search a video..." autocomplete="off">
+                <select id="sort" aria-label="Sort">
+                    <option value="new">Newest first</option>
+                    <option value="old">Oldest first</option>
+                    <option value="az">A to Z</option>
+                </select>
+                <button class="btn pink" id="random">Random video</button>
+            </div>
+            <div class="row" id="tagbar"></div>
+            <div class="row">
+                <span class="hint">Click tags to filter. Several tags = videos that have all of them.</span>
+                <button class="clear" id="clear" hidden>Clear filters</button>
+            </div>
+        </div>
+    </section>
+
+    <section class="window">
+        <div class="titlebar"><span class="name">Videos</span><span class="status" id="status"></span></div>
+        <div class="content"><main class="grid" id="grid"></main></div>
+    </section>
+
+</div>
+
+<footer class="strip">
+    <span>Videos belong to their respective creators.</span>
+    <a href="mentions-legales.html">Mentions légales</a>
+</footer>
+
+<div class="modal" id="modal" role="dialog" aria-modal="true">
+    <div class="player window">
+        <div class="titlebar">
+            <span class="name" id="ptitle"></span>
+            <span class="caption"><button class="x" id="pclose" aria-label="Close">&#10005;</button></span>
+        </div>
+        <div class="content">
+            <div class="screen" id="pscreen"></div>
+            <div class="foot"><span id="ptags" class="foot"></span><a id="plink" href="#" target="_blank" rel="noopener">Open original</a></div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Toutes les données viennent de videos.json, à côté de cette page.
+const PALETTE = ['aqua', 'pink', 'lime', 'violet', 'ruby', 'gold', 'steel'];
+const $ = id => document.getElementById(id);
+
+let videos = [];
+let tagInfo = new Map();      // clé en minuscules -> { name, color }
+let active = new Set();       // tags sélectionnés (clés en minuscules)
+let current = [];             // vidéos actuellement affichées
+
+const key = s => String(s).trim().toLowerCase();
+
+// --- Reconnaissance des liens ---
+function parse(url) {
+    let u;
+    try { u = new URL(url); } catch { return { kind: 'link', url }; }
+    const host = u.hostname.replace(/^www\.|^m\./, '');
+
+    if (host === 'youtu.be') return yt(u.pathname.slice(1), u);
+    if (host.endsWith('youtube.com') || host === 'youtube-nocookie.com') {
+        if (u.searchParams.get('v')) return yt(u.searchParams.get('v'), u);
+        const m = u.pathname.match(/^\/(shorts|embed|live)\/([\w-]{6,})/);
+        if (m) return yt(m[2], u, m[1] === 'shorts');
+    }
+    if (host.endsWith('tiktok.com')) {
+        const m = u.pathname.match(/\/video\/(\d+)/);
+        if (m) return { kind: 'tiktok', id: m[1], url, vertical: true };
+    }
+    if (/\.(mp4|webm|ogg|mov)$/i.test(u.pathname)) return { kind: 'file', url };
+    return { kind: 'link', url };
+}
+
+function yt(id, u, vertical = false) {
+    id = id.split(/[?&/]/)[0];
+    // Accepte ?t=90 ou ?t=1m30s pour démarrer plus loin
+    const t = u.searchParams.get('t') || u.searchParams.get('start');
+    let start = 0;
+    if (t) {
+        const m = t.match(/^(?:(\d+)h)?(?:(\d+)m)?(?:(\d+)s?)?$/);
+        if (m) start = (+m[1] || 0) * 3600 + (+m[2] || 0) * 60 + (+m[3] || 0);
+    }
+    return { kind: 'youtube', id, start, vertical, url: u.href };
+}
+
+function thumbOf(v) {
+    if (v.thumbnail) return v.thumbnail;
+    if (v.src.kind === 'youtube') return `https://i.ytimg.com/vi/${v.src.id}/hqdefault.jpg`;
+    return null;
+}
+
+// --- Chargement ---
+async function load() {
+    let text;
+    try {
+        const res = await fetch('videos.json', { cache: 'no-store' });
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        text = await res.text();
+    } catch (e) {
+        const local = location.protocol === 'file:';
+        return showError(local
+            ? 'The page was opened directly from the folder, so the browser blocks reading videos.json.\nUse "Lancer en local.bat" to preview it, or open the online version.'
+            : 'Could not load videos.json (' + e.message + ').');
+    }
+
+    let data;
+    try { data = JSON.parse(text); }
+    catch (e) { return showError('videos.json has a mistake in it:\n' + explain(e, text)); }
+
+    if (data.title) { $('title').textContent = data.title; document.title = data.title; }
+    $('subtitle').textContent = data.subtitle || '';
+
+    // Tags déclarés en haut du JSON (texte simple ou { name, color })
+    (data.tags || []).forEach((t, i) => {
+        const name = typeof t === 'string' ? t : t.name;
+        if (!name) return;
+        const color = (typeof t === 'object' && t.color) || PALETTE[i % PALETTE.length];
+        tagInfo.set(key(name), { name, color });
+    });
+
+    videos = (data.videos || []).filter(v => v && v.url).map((v, i) => {
+        const tags = (v.tags || []).map(String);
+        // Un tag utilisé mais pas déclaré apparaît quand même
+        tags.forEach(t => {
+            if (!tagInfo.has(key(t))) tagInfo.set(key(t), { name: t, color: PALETTE[tagInfo.size % PALETTE.length] });
+        });
+        return { ...v, title: v.title || v.url, tags, order: i, src: parse(v.url) };
+    });
+
+    readHash();
+    renderTags();
+    render();
+}
+
+// Indique la ligne fautive, le plus souvent une virgule en trop ou en moins
+function explain(err, text) {
+    const m = String(err.message).match(/position (\d+)/) ;
+    let msg = err.message;
+    if (m) {
+        const pos = +m[1];
+        const before = text.slice(0, pos);
+        const line = before.split('\n').length;
+        msg += `\n\nAround line ${line}:\n` + text.split('\n').slice(Math.max(0, line - 3), line + 1).join('\n');
+    }
+    return msg + '\n\nTip: check for a missing or extra comma, or a missing quote.';
+}
+
+function showError(msg) {
+    $('grid').innerHTML = '';
+    const box = document.createElement('div');
+    box.className = 'error';
+    box.style.gridColumn = '1 / -1';
+    box.innerHTML = '<strong>Oops.</strong>';
+    const pre = document.createElement('pre');
+    pre.textContent = msg;
+    box.appendChild(pre);
+    $('grid').appendChild(box);
+}
+
+// --- Affichage ---
+function tagButton(name, small, count) {
+    const info = tagInfo.get(key(name)) || { name, color: 'steel' };
+    const b = document.createElement('button');
+    b.className = 'tag' + (small ? ' small' : '') + (active.has(key(name)) ? ' on' : '');
+    b.textContent = info.name;
+    if (count !== undefined) {
+        const c = document.createElement('span');
+        c.className = 'count';
+        c.textContent = count;
+        b.appendChild(c);
+    }
+    setColor(b, info.color);
+    b.addEventListener('click', e => { e.stopPropagation(); toggle(name); });
+    return b;
+}
+
+function setColor(el, color) {
+    if (PALETTE.includes(color)) {
+        el.style.setProperty('--c', `var(--${color})`);
+        el.style.setProperty('--cd', `var(--${color}-deep)`);
+    } else {
+        // Couleur libre (#ff8800...) : la partie sombre est calculée
+        el.style.setProperty('--c', color);
+        el.style.setProperty('--cd', `color-mix(in srgb, ${color} 55%, black)`);
+    }
+}
+
+function renderTags() {
+    const bar = $('tagbar');
+    bar.innerHTML = '';
+    for (const [k, info] of tagInfo) {
+        const n = videos.filter(v => v.tags.some(t => key(t) === k)).length;
+        bar.appendChild(tagButton(info.name, false, n));
+    }
+    $('clear').hidden = active.size === 0 && !$('search').value;
+}
+
+function toggle(name) {
+    const k = key(name);
+    active.has(k) ? active.delete(k) : active.add(k);
+    closePlayer();
+    writeHash();
+    renderTags();
+    render();
+}
+
+function filtered() {
+    const q = key($('search').value);
+    let list = videos.filter(v => {
+        const keys = v.tags.map(key);
+        if (![...active].every(k => keys.includes(k))) return false;
+        if (q && !(key(v.title).includes(q) || keys.some(t => t.includes(q)))) return false;
+        return true;
+    });
+    const sort = $('sort').value;
+    const date = v => v.added || '';
+    if (sort === 'az') list.sort((a, b) => a.title.localeCompare(b.title));
+    // À date égale, la vidéo la plus bas dans le JSON est considérée comme la plus récente
+    else if (sort === 'old') list.sort((a, b) => date(a).localeCompare(date(b)) || a.order - b.order);
+    else list.sort((a, b) => date(b).localeCompare(date(a)) || b.order - a.order);
+    return list;
+}
+
+function render() {
+    current = filtered();
+    const grid = $('grid');
+    grid.innerHTML = '';
+    $('status').textContent = `${current.length} video${current.length === 1 ? '' : 's'}` +
+        (current.length !== videos.length ? ` out of ${videos.length}` : '');
+    $('clear').hidden = active.size === 0 && !$('search').value;
+
+    if (!current.length) {
+        const e = document.createElement('div');
+        e.className = 'empty';
+        e.style.gridColumn = '1 / -1';
+        e.textContent = videos.length ? 'No video matches these filters.' : 'No videos yet. Add some in videos.json!';
+        grid.appendChild(e);
+        return;
+    }
+
+    for (const v of current) {
+        const card = document.createElement('article');
+        card.className = 'card';
+        card.tabIndex = 0;
+
+        const th = document.createElement('div');
+        th.className = 'thumb';
+        const img = thumbOf(v);
+        if (img) th.style.backgroundImage = `url("${img}")`;
+        else th.innerHTML = '<span class="noimg"></span>';
+        if (!img) th.querySelector('.noimg').textContent = new URL(v.url, location.href).hostname.replace(/^www\./, '');
+        th.insertAdjacentHTML('beforeend', '<span class="play"></span>');
+
+        const body = document.createElement('div');
+        body.className = 'body';
+        const h = document.createElement('h3');
+        h.textContent = v.title;
+        body.appendChild(h);
+        if (v.note) {
+            const m = document.createElement('div');
+            m.className = 'meta';
+            m.textContent = v.note;
+            body.appendChild(m);
+        }
+        const tags = document.createElement('div');
+        tags.className = 'tags';
+        v.tags.forEach(t => tags.appendChild(tagButton(t, true)));
+        body.appendChild(tags);
+
+        card.append(th, body);
+        card.addEventListener('click', () => openPlayer(v));
+        card.addEventListener('keydown', e => { if (e.key === 'Enter') openPlayer(v); });
+        grid.appendChild(card);
+    }
+}
+
+// --- Lecteur ---
+function openPlayer(v) {
+    const s = v.src;
+    if (s.kind === 'link') { window.open(v.url, '_blank', 'noopener'); return; }
+
+    const screen = $('pscreen');
+    screen.innerHTML = '';
+    screen.classList.toggle('vertical', !!s.vertical);
+
+    if (s.kind === 'file') {
+        const vid = document.createElement('video');
+        vid.src = s.url; vid.controls = true; vid.autoplay = true;
+        screen.appendChild(vid);
+    } else {
+        const f = document.createElement('iframe');
+        f.allow = 'autoplay; encrypted-media; picture-in-picture; fullscreen';
+        f.allowFullscreen = true;
+        f.src = s.kind === 'youtube'
+            ? `https://www.youtube-nocookie.com/embed/${s.id}?autoplay=1&rel=0${s.start ? '&start=' + s.start : ''}`
+            : `https://www.tiktok.com/embed/v2/${s.id}`;
+        screen.appendChild(f);
+    }
+
+    $('ptitle').textContent = v.title;
+    $('plink').href = v.url;
+    const pt = $('ptags');
+    pt.innerHTML = '';
+    v.tags.forEach(t => pt.appendChild(tagButton(t, true)));
+    $('modal').classList.add('open');
+    $('pclose').focus();
+}
+
+function closePlayer() {
+    $('modal').classList.remove('open');
+    $('pscreen').innerHTML = '';   // coupe le son
+}
+
+$('pclose').addEventListener('click', closePlayer);
+$('modal').addEventListener('click', e => { if (e.target.id === 'modal') closePlayer(); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closePlayer(); });
+
+$('random').addEventListener('click', () => {
+    const pool = current.length ? current : videos;
+    if (pool.length) openPlayer(pool[Math.floor(Math.random() * pool.length)]);
+});
+$('search').addEventListener('input', render);
+$('sort').addEventListener('change', render);
+$('clear').addEventListener('click', () => {
+    active.clear();
+    $('search').value = '';
+    writeHash();
+    renderTags();
+    render();
+});
+
+// L'adresse garde les tags choisis : on peut partager un lien vers une catégorie (#tags=cats,animals)
+function writeHash() {
+    const names = [...active].map(k => encodeURIComponent(tagInfo.get(k)?.name || k));
+    history.replaceState(null, '', names.length ? '#tags=' + names.join(',') : location.pathname + location.search);
+}
+function readHash() {
+    const m = location.hash.match(/tags=([^&]*)/);
+    active = new Set(m ? m[1].split(',').filter(Boolean).map(s => key(decodeURIComponent(s))) : []);
+}
+window.addEventListener('hashchange', () => { readHash(); renderTags(); render(); });
+
+load();
+</script>
+</body>
+</html>

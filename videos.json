@@ -1,0 +1,21 @@
+{
+  "title": "Amai's Funny Videos",
+  "subtitle": "Compilations that made me laugh, sorted by tags.",
+
+  "tags": [
+    { "name": "Video games", "color": "aqua" },
+    { "name": "Cats", "color": "pink" },
+    { "name": "Animals", "color": "lime" },
+    { "name": "Fails", "color": "ruby" },
+    { "name": "Memes", "color": "violet" }
+  ],
+
+  "videos": [
+    {
+      "title": "Keyboard Cat! - THE ORIGINAL!",
+      "url": "https://www.youtube.com/watch?v=J---aiyznGQ",
+      "tags": ["Cats", "Animals", "Memes"],
+      "added": "2026-10-07"
+    }
+  ]
+}

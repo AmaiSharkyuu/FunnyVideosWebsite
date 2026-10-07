@@ -16,7 +16,7 @@ Ajoute un bloc dans `"videos"` (sans oublier la virgule entre deux blocs) :
 }
 ```
 
-- `url` : YouTube (vidéo, Shorts, youtu.be, avec `?t=90` pour démarrer plus loin), TikTok, ou un lien direct vers un .mp4. Tout autre lien s'ouvre dans un nouvel onglet.
+- `url` : YouTube (vidéo, Shorts, youtu.be, avec `?t=90` pour démarrer plus loin), TikTok (lien long ou lien court `vm.tiktok.com/...`, copié tel quel depuis le bouton Partager), ou un lien direct vers un .mp4. Tout autre lien s'ouvre dans un nouvel onglet.
 - `lang` : `"fr"` ou `"en"`, la section où ranger la vidéo. Sans `lang`, elle va dans une section « Other ».
 - `tags` : autant que tu veux. Un tag qui n'est pas dans la liste du haut apparaît quand même.
 - `added` : sert au tri « Newest first ». Facultatif.
@@ -34,7 +34,7 @@ Le curseur sous le lecteur règle le son (YouTube et .mp4) et le site s'en souvi
 ## Ajouter un tag
 
 Dans `"tags"` en haut : `{ "name": "Dogs", "color": "gold" }`.
-Couleurs prêtes : aqua, pink, lime, violet, ruby, gold, steel, ou n'importe quel code comme `"#ff8800"`.
+Couleurs prêtes : aqua, pink, lime, violet, ruby, gold, steel, ou yellow, red, green, blue, purple, rose, ou n'importe quel code comme `"#ff8800"`.
 L'ordre de la liste = l'ordre des boutons sur le site.
 
 ## Voir le site sur le PC

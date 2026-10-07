@@ -351,7 +351,8 @@ function parse(url) {
     }
     if (host.endsWith('tiktok.com')) {
         const m = u.pathname.match(/\/video\/(\d+)/);
-        if (m) return { kind: 'tiktok', id: m[1], url, vertical: true };
+        // Lien court (vm.tiktok.com/..., tiktok.com/t/...) : l'id est retrouvé au chargement
+        return { kind: 'tiktok', id: m ? m[1] : null, url, vertical: true };
     }
     if (/\.(mp4|webm|ogg|mov)$/i.test(u.pathname)) return { kind: 'file', url };
     return { kind: 'link', url };
@@ -372,7 +373,21 @@ function yt(id, u, vertical = false) {
 function thumbOf(v) {
     if (v.thumbnail) return v.thumbnail;
     if (v.src.kind === 'youtube') return `https://i.ytimg.com/vi/${v.src.id}/hqdefault.jpg`;
-    return null;
+    return v.autoThumb || null;
+}
+
+// TikTok donne l'id et la miniature de n'importe quel lien (court ou long) via son oEmbed public
+function resolveTikTok(v) {
+    v.tt = fetch('https://www.tiktok.com/oembed?url=' + encodeURIComponent(v.url))
+        .then(res => res.ok ? res.json() : null)
+        .then(j => {
+            if (!j) return;
+            if (!v.src.id && /^\d+$/.test(j.embed_product_id || '')) v.src.id = j.embed_product_id;
+            if (j.thumbnail_url) v.autoThumb = j.thumbnail_url;
+        })
+        .catch(() => {})
+        .finally(() => { v.tt = null; });
+    return v.tt;
 }
 
 // --- Chargement ---
@@ -424,6 +439,9 @@ async function load() {
     renderLangs();
     renderTags();
     render();
+
+    const tiktoks = videos.filter(v => v.src.kind === 'tiktok');
+    if (tiktoks.length) Promise.all(tiktoks.map(resolveTikTok)).then(render);
 }
 
 // Indique la ligne fautive, le plus souvent une virgule en trop ou en moins
@@ -479,7 +497,10 @@ function tagButton(name, small, count) {
     return b;
 }
 
+const COLOR_ALIASES = { yellow: 'gold', red: 'ruby', green: 'lime', blue: 'aqua', purple: 'violet', grey: 'steel', gray: 'steel', rose: 'pink' };
+
 function setColor(el, color) {
+    color = COLOR_ALIASES[key(color)] || color;
     if (PALETTE.includes(color)) {
         el.style.setProperty('--c', `var(--${color})`);
         el.style.setProperty('--cd', `var(--${color}-deep)`);
@@ -702,7 +723,8 @@ function loadYouTubeApi() {
 
 function openPlayer(v) {
     const s = v.src;
-    if (s.kind === 'link') { window.open(v.url, '_blank', 'noopener'); return; }
+    if (s.kind === 'tiktok' && !s.id && v.tt) { v.tt.then(() => openPlayer(v)); return; }
+    if (s.kind === 'link' || (s.kind === 'tiktok' && !s.id)) { window.open(v.url, '_blank', 'noopener'); return; }
 
     const screen = $('pscreen');
     screen.innerHTML = '';
@@ -738,7 +760,7 @@ function openPlayer(v) {
         const f = document.createElement('iframe');
         f.allow = 'autoplay; encrypted-media; picture-in-picture; fullscreen';
         f.allowFullscreen = true;
-        f.src = `https://www.tiktok.com/embed/v2/${s.id}`;
+        f.src = `https://www.tiktok.com/player/v1/${s.id}?autoplay=1&rel=0&description=1&music_info=1`;
         screen.appendChild(f);
     }
     applyVolume();

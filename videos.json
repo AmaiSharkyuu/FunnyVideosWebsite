@@ -2,6 +2,11 @@
   "title": "Amai's Funny Videos",
   "subtitle": "Compilations that made me laugh, sorted by tags.",
 
+  "sections": [
+    { "id": "fr", "name": "Vidéos en français" },
+    { "id": "en", "name": "English videos" }
+  ],
+
   "tags": [
     { "name": "Video games", "color": "aqua" },
     { "name": "Cats", "color": "pink" },
@@ -14,12 +19,14 @@
     {
       "title": "Keyboard Cat! - THE ORIGINAL!",
       "url": "https://www.youtube.com/watch?v=J---aiyznGQ",
+      "lang": "en",
       "tags": ["Cats", "Animals", "Memes"],
       "added": "2026-10-07"
     },
     {
       "title": "Ranking The Best GTA 5 Moments",
       "url": "https://youtube.com/shorts/MIyPxgcVDaY?si=ZMZe43AAFIyfU2wF",
+      "lang": "en",
       "tags": ["Video Games", "Memes"],
       "added": "2026-10-07"
     }

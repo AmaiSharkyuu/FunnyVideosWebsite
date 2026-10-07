@@ -10,16 +10,22 @@ Ajoute un bloc dans `"videos"` (sans oublier la virgule entre deux blocs) :
 {
   "title": "Cat fails compilation",
   "url": "https://www.youtube.com/watch?v=XXXXXXXXXXX",
+  "lang": "fr",
   "tags": ["Cats", "Fails"],
   "added": "2026-10-07"
 }
 ```
 
 - `url` : YouTube (vidéo, Shorts, youtu.be, avec `?t=90` pour démarrer plus loin), TikTok, ou un lien direct vers un .mp4. Tout autre lien s'ouvre dans un nouvel onglet.
+- `lang` : `"fr"` ou `"en"`, la section où ranger la vidéo. Sans `lang`, elle va dans une section « Other ».
 - `tags` : autant que tu veux. Un tag qui n'est pas dans la liste du haut apparaît quand même.
 - `added` : sert au tri « Newest first ». Facultatif.
 - `volume` : pour une vidéo trop forte, par exemple `"volume": 40` la joue à 40 % du réglage du site. Facultatif.
 - Facultatifs aussi : `"note"` (petite ligne sous le titre) et `"thumbnail"` (image perso, sinon la miniature YouTube est prise toute seule).
+
+## Sections
+
+La liste `"sections"` en haut du JSON définit les sections (une par langue). Pour en ajouter une : `{ "id": "es", "name": "Vídeos en español" }`, puis `"lang": "es"` sur les vidéos. Les drapeaux existent pour `fr` et `en`.
 
 ## Son
 

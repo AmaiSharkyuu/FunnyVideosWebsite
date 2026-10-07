@@ -129,6 +129,28 @@
 
         /* --- Grille de vidéos --- */
         .status { color: var(--text-dim); font-size: 13px; margin-left: auto; padding-right: 6px; }
+        #sections { display: flex; flex-direction: column; gap: 22px; }
+        .flag { width: 20px; height: 13px; flex: none; box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.7); }
+        .titlebar .flag { width: 18px; height: 12px; }
+
+        /* Choix de la langue : boutons collés façon onglets */
+        .langs { display: flex; flex-wrap: wrap; }
+        .langs button {
+            display: flex; align-items: center; gap: 8px;
+            font: inherit; font-size: 14px; font-weight: 600; color: #fff; cursor: pointer;
+            padding: 7px 14px; margin-right: -1px;
+            border: 1px solid rgba(0, 0, 0, 0.8);
+            background: linear-gradient(180deg, rgba(255,255,255,0.22), rgba(255,255,255,0.06) 50%, rgba(255,255,255,0) 51%, rgba(255,255,255,0.08));
+            box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.22);
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.7);
+        }
+        .langs button:hover { background-color: rgba(255, 122, 209, 0.15); }
+        .langs button.on {
+            background: linear-gradient(180deg, #ffc2ea 0%, #ff7ad1 48%, #c8338f 52%, #e957b5 100%);
+            box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.5), 0 0 10px rgba(255, 122, 209, 0.5);
+            position: relative; z-index: 1;
+        }
+        .langs .n { font-weight: 400; opacity: 0.8; }
         .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 14px; }
         .card {
             display: flex; flex-direction: column; cursor: pointer;
@@ -259,6 +281,7 @@
                 </select>
                 <button class="btn pink" id="random">Random video</button>
             </div>
+            <div class="langs" id="langs" role="tablist" aria-label="Language"></div>
             <div class="row" id="tagbar"></div>
             <div class="row">
                 <span class="hint">Click tags to filter. Several tags = videos that have all of them.</span>
@@ -267,10 +290,7 @@
         </div>
     </section>
 
-    <section class="window">
-        <div class="titlebar"><span class="name">Videos</span><span class="status" id="status"></span></div>
-        <div class="content"><main class="grid" id="grid"></main></div>
-    </section>
+    <main id="sections"></main>
 
 </div>
 
@@ -311,6 +331,8 @@ const $ = id => document.getElementById(id);
 let videos = [];
 let tagInfo = new Map();      // clé en minuscules -> { name, color }
 let active = new Set();       // tags sélectionnés (clés en minuscules)
+let sections = [];            // { id, name } dans l'ordre du JSON
+let lang = 'all';             // section affichée : 'all' ou l'id d'une section
 let current = [];             // vidéos actuellement affichées
 
 const key = s => String(s).trim().toLowerCase();
@@ -382,16 +404,24 @@ async function load() {
         tagInfo.set(key(name), { name, color });
     });
 
+    // Sections par langue ("lang" de chaque vidéo = "id" d'une section)
+    sections = (data.sections || []).filter(x => x && x.id).map(x => ({ id: key(x.id), name: x.name || x.id }));
+    const known = new Set(sections.map(x => x.id));
+
     videos = (data.videos || []).filter(v => v && v.url).map((v, i) => {
         const tags = (v.tags || []).map(String);
         // Un tag utilisé mais pas déclaré apparaît quand même
         tags.forEach(t => {
             if (!tagInfo.has(key(t))) tagInfo.set(key(t), { name: t, color: PALETTE[tagInfo.size % PALETTE.length] });
         });
-        return { ...v, title: v.title || v.url, tags, order: i, src: parse(v.url) };
+        // Langue absente ou inconnue : rangée dans "Other"
+        const l = known.has(key(v.lang || '')) ? key(v.lang) : 'other';
+        return { ...v, title: v.title || v.url, tags, lang: l, order: i, src: parse(v.url) };
     });
+    if (videos.some(v => v.lang === 'other')) sections.push({ id: 'other', name: 'Other' });
 
     readHash();
+    renderLangs();
     renderTags();
     render();
 }
@@ -410,15 +440,26 @@ function explain(err, text) {
 }
 
 function showError(msg) {
-    $('grid').innerHTML = '';
+    $('sections').innerHTML = '';
+    const grid = sectionWindow('', 'Error', [], 0);
     const box = document.createElement('div');
     box.className = 'error';
-    box.style.gridColumn = '1 / -1';
     box.innerHTML = '<strong>Oops.</strong>';
     const pre = document.createElement('pre');
     pre.textContent = msg;
     box.appendChild(pre);
-    $('grid').appendChild(box);
+    grid.appendChild(box);
+}
+
+// --- Drapeaux (les emojis drapeaux ne s'affichent pas sous Windows) ---
+let flagId = 0;
+function flag(id) {
+    if (id === 'fr') return '<svg class="flag" viewBox="0 0 3 2"><path fill="#002395" d="M0 0h1v2H0z"/><path fill="#fff" d="M1 0h1v2H1z"/><path fill="#ed2939" d="M2 0h1v2H2z"/></svg>';
+    if (id === 'en' || id === 'gb') {
+        const c = 'uk' + (++flagId);
+        return `<svg class="flag" viewBox="0 0 60 30"><clipPath id="${c}"><path d="M30 15h30v15zv15H0zH0V0zV0h30z"/></clipPath><path fill="#012169" d="M0 0v30h60V0z"/><path stroke="#fff" stroke-width="6" d="M0 0l60 30m0-30L0 30"/><path stroke="#c8102e" stroke-width="4" clip-path="url(#${c})" d="M0 0l60 30m0-30L0 30"/><path stroke="#fff" stroke-width="10" d="M30 0v30M0 15h60"/><path stroke="#c8102e" stroke-width="6" d="M30 0v30M0 15h60"/></svg>`;
+    }
+    return '';
 }
 
 // --- Affichage ---
@@ -452,8 +493,9 @@ function setColor(el, color) {
 function renderTags() {
     const bar = $('tagbar');
     bar.innerHTML = '';
+    const pool = videos.filter(inLang);
     for (const [k, info] of tagInfo) {
-        const n = videos.filter(v => v.tags.some(t => key(t) === k)).length;
+        const n = pool.filter(v => v.tags.some(t => key(t) === k)).length;
         bar.appendChild(tagButton(info.name, false, n));
     }
     $('clear').hidden = active.size === 0 && !$('search').value;
@@ -468,9 +510,38 @@ function toggle(name) {
     render();
 }
 
+const inLang = v => lang === 'all' || v.lang === lang;
+
+function renderLangs() {
+    const bar = $('langs');
+    bar.innerHTML = '';
+    bar.hidden = sections.length < 2;
+    const opts = [{ id: 'all', name: 'All' }, ...sections];
+    for (const o of opts) {
+        const b = document.createElement('button');
+        b.className = lang === o.id ? 'on' : '';
+        b.setAttribute('role', 'tab');
+        b.setAttribute('aria-selected', lang === o.id);
+        const n = o.id === 'all' ? videos.length : videos.filter(v => v.lang === o.id).length;
+        b.innerHTML = flag(o.id) + '<span></span> <span class="n"></span>';
+        b.children[b.children.length - 2].textContent = o.name;
+        b.lastElementChild.textContent = n;
+        b.addEventListener('click', () => {
+            lang = o.id;
+            closePlayer();
+            writeHash();
+            renderLangs();
+            renderTags();
+            render();
+        });
+        bar.appendChild(b);
+    }
+}
+
 function filtered() {
     const q = key($('search').value);
     let list = videos.filter(v => {
+        if (!inLang(v)) return false;
         const keys = v.tags.map(key);
         if (![...active].every(k => keys.includes(k))) return false;
         if (q && !(key(v.title).includes(q) || keys.some(t => t.includes(q)))) return false;
@@ -485,57 +556,88 @@ function filtered() {
     return list;
 }
 
+// Une fenêtre par section, ou une seule fenêtre "Videos" si le JSON n'a pas de sections
+function sectionWindow(id, name, list, total) {
+    const win = document.createElement('section');
+    win.className = 'window';
+    const bar = document.createElement('div');
+    bar.className = 'titlebar';
+    bar.innerHTML = flag(id) + '<span class="name"></span><span class="status"></span>';
+    bar.querySelector('.name').textContent = name;
+    bar.querySelector('.status').textContent = `${list.length} video${list.length === 1 ? '' : 's'}` +
+        (list.length !== total ? ` out of ${total}` : '');
+    const content = document.createElement('div');
+    content.className = 'content';
+    const grid = document.createElement('div');
+    grid.className = 'grid';
+    content.appendChild(grid);
+    win.append(bar, content);
+    $('sections').appendChild(win);
+    return grid;
+}
+
+function emptyBox(grid, text) {
+    const e = document.createElement('div');
+    e.className = 'empty';
+    e.textContent = text;
+    grid.appendChild(e);
+}
+
 function render() {
     current = filtered();
-    const grid = $('grid');
-    grid.innerHTML = '';
-    $('status').textContent = `${current.length} video${current.length === 1 ? '' : 's'}` +
-        (current.length !== videos.length ? ` out of ${videos.length}` : '');
+    $('sections').innerHTML = '';
     $('clear').hidden = active.size === 0 && !$('search').value;
 
-    if (!current.length) {
-        const e = document.createElement('div');
-        e.className = 'empty';
-        e.style.gridColumn = '1 / -1';
-        e.textContent = videos.length ? 'No video matches these filters.' : 'No videos yet. Add some in videos.json!';
-        grid.appendChild(e);
-        return;
+    const groups = sections.length
+        ? sections.filter(x => lang === 'all' || x.id === lang)
+            .map(x => ({ ...x, list: current.filter(v => v.lang === x.id), total: videos.filter(v => v.lang === x.id).length }))
+        : [{ id: '', name: 'Videos', list: current, total: videos.length }];
+
+    if (!videos.length) return emptyBox(sectionWindow('', 'Videos', [], 0), 'No videos yet. Add some in videos.json!');
+    if (!current.length) return emptyBox(sectionWindow('', 'Videos', [], videos.length), 'No video matches these filters.');
+
+    for (const g of groups) {
+        // En vue "All", une section sans résultat est masquée pour ne pas encombrer
+        if (!g.list.length && lang === 'all') continue;
+        const grid = sectionWindow(g.id, g.name, g.list, g.total);
+        if (!g.list.length) emptyBox(grid, g.total ? 'No video matches these filters.' : 'No videos in this section yet.');
+        g.list.forEach(v => grid.appendChild(card(v)));
     }
+}
 
-    for (const v of current) {
-        const card = document.createElement('article');
-        card.className = 'card';
-        card.tabIndex = 0;
+function card(v) {
+    const card = document.createElement('article');
+    card.className = 'card';
+    card.tabIndex = 0;
 
-        const th = document.createElement('div');
-        th.className = 'thumb';
-        const img = thumbOf(v);
-        if (img) th.style.backgroundImage = `url("${img}")`;
-        else th.innerHTML = '<span class="noimg"></span>';
-        if (!img) th.querySelector('.noimg').textContent = new URL(v.url, location.href).hostname.replace(/^www\./, '');
-        th.insertAdjacentHTML('beforeend', '<span class="play"></span>');
+    const th = document.createElement('div');
+    th.className = 'thumb';
+    const img = thumbOf(v);
+    if (img) th.style.backgroundImage = `url("${img}")`;
+    else th.innerHTML = '<span class="noimg"></span>';
+    if (!img) th.querySelector('.noimg').textContent = new URL(v.url, location.href).hostname.replace(/^www\./, '');
+    th.insertAdjacentHTML('beforeend', '<span class="play"></span>');
 
-        const body = document.createElement('div');
-        body.className = 'body';
-        const h = document.createElement('h3');
-        h.textContent = v.title;
-        body.appendChild(h);
-        if (v.note) {
-            const m = document.createElement('div');
-            m.className = 'meta';
-            m.textContent = v.note;
-            body.appendChild(m);
-        }
-        const tags = document.createElement('div');
-        tags.className = 'tags';
-        v.tags.forEach(t => tags.appendChild(tagButton(t, true)));
-        body.appendChild(tags);
-
-        card.append(th, body);
-        card.addEventListener('click', () => openPlayer(v));
-        card.addEventListener('keydown', e => { if (e.key === 'Enter') openPlayer(v); });
-        grid.appendChild(card);
+    const body = document.createElement('div');
+    body.className = 'body';
+    const h = document.createElement('h3');
+    h.textContent = v.title;
+    body.appendChild(h);
+    if (v.note) {
+        const m = document.createElement('div');
+        m.className = 'meta';
+        m.textContent = v.note;
+        body.appendChild(m);
     }
+    const tags = document.createElement('div');
+    tags.className = 'tags';
+    v.tags.forEach(t => tags.appendChild(tagButton(t, true)));
+    body.appendChild(tags);
+
+    card.append(th, body);
+    card.addEventListener('click', () => openPlayer(v));
+    card.addEventListener('keydown', e => { if (e.key === 'Enter') openPlayer(v); });
+    return card;
 }
 
 // --- Lecteur ---
@@ -677,14 +779,20 @@ $('clear').addEventListener('click', () => {
 
 // L'adresse garde les tags choisis : on peut partager un lien vers une catégorie (#tags=cats,animals)
 function writeHash() {
+    const parts = [];
+    if (lang !== 'all') parts.push('lang=' + encodeURIComponent(lang));
     const names = [...active].map(k => encodeURIComponent(tagInfo.get(k)?.name || k));
-    history.replaceState(null, '', names.length ? '#tags=' + names.join(',') : location.pathname + location.search);
+    if (names.length) parts.push('tags=' + names.join(','));
+    history.replaceState(null, '', parts.length ? '#' + parts.join('&') : location.pathname + location.search);
 }
 function readHash() {
     const m = location.hash.match(/tags=([^&]*)/);
     active = new Set(m ? m[1].split(',').filter(Boolean).map(s => key(decodeURIComponent(s))) : []);
+    const l = location.hash.match(/lang=([^&]*)/);
+    const want = l ? key(decodeURIComponent(l[1])) : 'all';
+    lang = sections.some(x => x.id === want) ? want : 'all';
 }
-window.addEventListener('hashchange', () => { readHash(); renderTags(); render(); });
+window.addEventListener('hashchange', () => { readHash(); renderLangs(); renderTags(); render(); });
 
 load();
 </script>
